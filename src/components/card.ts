@@ -26,6 +26,7 @@ export function createCard(
     <img
       src="${pokemon.sprites.other["official-artwork"].front_default}"
       alt="${pokemon.name}"
+      loading="lazy"
       class="w-16 h-16 sm:w-24 sm:h-24 mx-auto"
     />
     <p class="font-bold text-gray-700 mt-2">${koName}</p>
