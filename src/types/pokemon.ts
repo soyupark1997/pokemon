@@ -17,6 +17,7 @@ export interface Pokemon {
   sprites: Sprites;
   types: PokemonType[];
   stats: PokemonStat[];
+  species: { name: string };
 }
 
 export interface Sprites {

@@ -131,10 +131,9 @@ for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
     batch.map(async (item, batchIndex) => {
       const index = i + batchIndex;
       try {
-        const [pokemon, legend] = await Promise.all([
-          getPokemon(item.name),
-          getPokemonLegend(item.name),
-        ]);
+        const pokemon = await getPokemon(item.name);
+        // 폼 이름(deoxys-normal 등) 대신 species 이름으로 요청
+        const legend = await getPokemonLegend(pokemon.species.name);
 
         const cardData: PokemonCardData = {
           pokemon,
