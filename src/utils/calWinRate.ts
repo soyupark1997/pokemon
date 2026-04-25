@@ -2,7 +2,7 @@ import type { Pokemon } from "../types/pokemon";
 import { typeChart } from "./typeChart";
 
 const MOVE_POWER = 80;
-const SIMULATIONS = 200;
+const SIMULATIONS = 30;
 
 function getStat(pokemon: Pokemon, name: string): number {
   return pokemon.stats.find((s) => s.stat.name === name)?.base_stat ?? 1;
