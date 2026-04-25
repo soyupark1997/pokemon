@@ -1,7 +1,8 @@
 import { calcBattleRanking } from "./calWinRate";
 import type { Pokemon } from "../types/pokemon";
 
-self.onmessage = (e: MessageEvent<{ selected: Pokemon; allPokemons: Pokemon[] }>) => {
-  const result = calcBattleRanking(e.data.selected, e.data.allPokemons);
-  self.postMessage(result);
+self.onmessage = (e: MessageEvent<{ id: number; selected: Pokemon; allPokemons: Pokemon[] }>) => {
+  const { id, selected, allPokemons } = e.data;
+  const result = calcBattleRanking(selected, allPokemons);
+  self.postMessage({ id, result });
 };

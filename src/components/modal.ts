@@ -1,6 +1,13 @@
 import type { PokemonCardData } from "../types/pokemon";
 import type { Pokemon } from "../types/pokemon";
 
+// 앱 시작 시 딱 한 번만 생성, 재사용
+const battleWorker = new Worker(
+  new URL("../utils/battleWorker.ts", import.meta.url),
+  { type: "module" },
+);
+let requestId = 0;
+
 function getStatColor(value: number): string {
   if (value >= 150) return "bg-red-400";
   if (value >= 100) return "bg-orange-400";
@@ -133,23 +140,20 @@ export function openModal(
 
   document.body.appendChild(modal);
 
-  // 배틀 계산은 Web Worker에서 백그라운드로
+  // 싱글턴 Worker에 요청, 오래된 응답은 id로 무시
   const allPokemonOnly = allPokemons.filter(Boolean).map((p) => p.pokemon);
-  const worker = new Worker(
-    new URL("../utils/battleWorker.ts", import.meta.url),
-    { type: "module" },
-  );
+  const currentId = ++requestId;
 
-  worker.postMessage({ selected: selected.pokemon, allPokemons: allPokemonOnly });
+  battleWorker.postMessage({ id: currentId, selected: selected.pokemon, allPokemons: allPokemonOnly });
 
-  worker.onmessage = (e) => {
-    worker.terminate();
+  battleWorker.onmessage = (e) => {
+    if (e.data.id !== currentId) return;
     const battleSection = modal.querySelector("#battle-section");
     if (battleSection) {
       battleSection.innerHTML = renderBattleSection(
-        e.data.winRate,
-        e.data.best,
-        e.data.worst,
+        e.data.result.winRate,
+        e.data.result.best,
+        e.data.result.worst,
         allPokemons,
       );
     }
