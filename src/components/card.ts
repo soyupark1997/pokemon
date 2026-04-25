@@ -14,7 +14,7 @@ export function createCard(
       ? "border-yellow-300"
       : "border-amber-100";
 
-  card.className = `bg-white rounded-2xl p-3 sm:p-4 text-center shadow-md border-2 ${borderClass} hover:scale-105 transition-transform cursor-pointer`;
+  card.className = `bg-white rounded-2xl p-3 sm:p-4 text-center shadow-md border-2 ${borderClass} sm:hover:scale-105 active:scale-95 transition-transform cursor-pointer`;
 
   const legendBadge = isMythical
     ? `<span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-600">✨ 환상</span>`

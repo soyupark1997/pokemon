@@ -4,11 +4,11 @@ import { openModal } from "./components/modal";
 import type { PokemonCardData } from "./types/pokemon";
 import "./style.css";
 
-const PAGE_SIZE = 40;
+const PAGE_SIZE = 20;
 const BATCH_SIZE = 10;
 
 const pokemonGrid = document.getElementById("pokemon-grid")!;
-const loadMoreBtn = document.getElementById("load-more-btn")!;
+const paginationEl = document.getElementById("pagination")!;
 
 const allPokemons: PokemonCardData[] = [];
 
@@ -32,39 +32,74 @@ function getFiltered() {
     .sort((a, b) => a.pokemon.id - b.pokemon.id);
 }
 
-function renderFiltered() {
-  pokemonGrid.innerHTML = "";
-  currentPage = 1;
+function renderPagination(totalItems: number) {
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  paginationEl.innerHTML = "";
 
-  const filtered = getFiltered();
-  const page = filtered.slice(0, PAGE_SIZE * currentPage);
+  if (totalPages <= 1) return;
 
-  page.forEach((cardData) => {
-    const { pokemon, koName, isLegendary, isMythical } = cardData;
-    const card = createCard(pokemon, koName, isLegendary, isMythical);
-    card.addEventListener("click", () => openModal(cardData, allPokemons));
-    pokemonGrid.appendChild(card);
-  });
+  const addBtn = (label: string, page: number, active = false) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.className = active
+      ? "px-3 py-2 rounded-full bg-amber-400 text-white font-bold min-w-[36px]"
+      : "px-3 py-2 rounded-full border-2 border-amber-200 text-amber-500 hover:bg-amber-100 min-w-[36px]";
+    btn.addEventListener("click", () => goToPage(page));
+    paginationEl.appendChild(btn);
+  };
 
-  loadMoreBtn.style.display = filtered.length > PAGE_SIZE ? "block" : "none";
+  const addEllipsis = () => {
+    const span = document.createElement("span");
+    span.textContent = "…";
+    span.className = "px-1 py-2 text-amber-400";
+    paginationEl.appendChild(span);
+  };
+
+  if (currentPage > 1) addBtn("‹", currentPage - 1);
+
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+
+  if (start > 1) addBtn("1", 1);
+  if (start > 2) addEllipsis();
+  for (let p = start; p <= end; p++) addBtn(String(p), p, p === currentPage);
+  if (end < totalPages - 1) addEllipsis();
+  if (end < totalPages) addBtn(String(totalPages), totalPages);
+
+  if (currentPage < totalPages) addBtn("›", currentPage + 1);
 }
 
-function loadMore() {
-  currentPage++;
-  const filtered = getFiltered();
-  const start = PAGE_SIZE * (currentPage - 1);
-  const page = filtered.slice(start, PAGE_SIZE * currentPage);
+function goToPage(page: number) {
+  currentPage = page;
+  pokemonGrid.innerHTML = "";
 
-  page.forEach((cardData) => {
+  const filtered = getFiltered();
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  pageItems.forEach((cardData) => {
     const { pokemon, koName, isLegendary, isMythical } = cardData;
     const card = createCard(pokemon, koName, isLegendary, isMythical);
     card.addEventListener("click", () => openModal(cardData, allPokemons));
     pokemonGrid.appendChild(card);
   });
 
-  if (PAGE_SIZE * currentPage >= filtered.length) {
-    loadMoreBtn.style.display = "none";
-  }
+  renderPagination(filtered.length);
+  pokemonGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderFiltered() {
+  currentPage = 1;
+  pokemonGrid.innerHTML = "";
+
+  const filtered = getFiltered();
+  filtered.slice(0, PAGE_SIZE).forEach((cardData) => {
+    const { pokemon, koName, isLegendary, isMythical } = cardData;
+    const card = createCard(pokemon, koName, isLegendary, isMythical);
+    card.addEventListener("click", () => openModal(cardData, allPokemons));
+    pokemonGrid.appendChild(card);
+  });
+
+  renderPagination(filtered.length);
 }
 
 document.querySelectorAll('input[name="legend-filter"]').forEach((radio) => {
@@ -81,11 +116,8 @@ document.querySelectorAll('input[name="type-filter"]').forEach((radio) => {
   });
 });
 
-loadMoreBtn.addEventListener("click", loadMore);
-
 const list = await getPokemonList(721);
 
-// 스켈레톤은 처음 PAGE_SIZE개만 보여줌
 const skeletonCount = Math.min(list.results.length, PAGE_SIZE);
 for (let i = 0; i < skeletonCount; i++) {
   const skeleton = createSkeletonCard();
@@ -93,7 +125,6 @@ for (let i = 0; i < skeletonCount; i++) {
   pokemonGrid.appendChild(skeleton);
 }
 
-// 10개씩 배치로 fetch
 for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
   const batch = list.results.slice(i, i + BATCH_SIZE);
   await Promise.all(
@@ -113,7 +144,6 @@ for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
 
       allPokemons[index] = cardData;
 
-      // 첫 PAGE_SIZE 안에 있으면 스켈레톤 교체, 아니면 그냥 저장만
       if (index < PAGE_SIZE) {
         const card = createCard(
           pokemon,
@@ -122,15 +152,11 @@ for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
           legend.isMythical,
         );
         card.addEventListener("click", () => openModal(cardData, allPokemons));
-        const skeleton = document.getElementById(`skeleton-${index}`);
-        skeleton?.replaceWith(card);
-      }
-
-      // 마지막 포켓몬 로드 완료 시 더 보기 버튼 표시
-      if (allPokemons.filter(Boolean).length === list.results.length) {
-        const filtered = getFiltered();
-        if (filtered.length > PAGE_SIZE) loadMoreBtn.style.display = "block";
+        document.getElementById(`skeleton-${index}`)?.replaceWith(card);
       }
     }),
   );
+
+  // 배치 완료 후 페이지네이션 갱신
+  renderPagination(getFiltered().length);
 }

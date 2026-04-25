@@ -15,7 +15,7 @@ export function openModal(
 ) {
   document.getElementById("pokemon-modal")?.remove();
 
-  const allPokemonOnly = allPokemons.map((p) => p.pokemon);
+  const allPokemonOnly = allPokemons.filter(Boolean).map((p) => p.pokemon);
   const { winRate, best, worst } = calcBattleRanking(
     selected.pokemon,
     allPokemonOnly,
