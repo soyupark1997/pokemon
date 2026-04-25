@@ -16,7 +16,10 @@ export function openModal(
   document.getElementById("pokemon-modal")?.remove();
 
   const allPokemonOnly = allPokemons.map((p) => p.pokemon);
-  const { best, worst } = calcBattleRanking(selected.pokemon, allPokemonOnly);
+  const { winRate, best, worst } = calcBattleRanking(
+    selected.pokemon,
+    allPokemonOnly,
+  );
   const statNameMap: Record<string, string> = {
     hp: "HP",
     attack: "공격",
@@ -83,6 +86,12 @@ export function openModal(
 `,
         )
         .join("")}
+      </div>
+
+      <!-- 전체 승률 -->
+      <div class="mb-4 text-center bg-white/60 rounded-2xl py-3">
+        <p class="text-xs text-gray-400 mb-1">전체 포켓몬 대상 승률</p>
+        <p class="text-3xl font-bold ${winRate >= 50 ? "text-green-500" : "text-red-400"}">${winRate}%</p>
       </div>
 
       <!-- 배틀 랭킹 -->

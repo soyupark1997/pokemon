@@ -1,12 +1,19 @@
 import type { Pokemon } from "../types/pokemon";
 import { typeChart } from "./typeChart";
 
-const LEVEL = 50;
 const MOVE_POWER = 80;
 const SIMULATIONS = 200;
 
 function getStat(pokemon: Pokemon, name: string): number {
   return pokemon.stats.find((s) => s.stat.name === name)?.base_stat ?? 1;
+}
+
+function actualHP(base: number): number {
+  return Math.floor(base) + 60;
+}
+
+function actualStat(base: number): number {
+  return Math.floor(base) + 5;
 }
 
 function calcTypeMultiplier(
@@ -28,17 +35,16 @@ function calcDamage(
   typeMultiplier: number,
   randomFactor: number,
 ): number {
-  const atk = getStat(attacker, "attack");
-  const spAtk = getStat(attacker, "special-attack");
-  const def = getStat(defender, "defense");
-  const spDef = getStat(defender, "special-defense");
+  const atk = actualStat(getStat(attacker, "attack"));
+  const spAtk = actualStat(getStat(attacker, "special-attack"));
+  const def = actualStat(getStat(defender, "defense"));
+  const spDef = actualStat(getStat(defender, "special-defense"));
 
-  // 공격/특공 중 유리한 쪽 선택
   const [atkStat, defStat] =
     atk / def >= spAtk / spDef ? [atk, def] : [spAtk, spDef];
 
   const base =
-    (((2 * LEVEL) / 5 + 2) * MOVE_POWER * (atkStat / defStat)) / 50 + 2;
+    (((2 * 50) / 5 + 2) * MOVE_POWER * (atkStat / defStat)) / 50 + 2;
 
   return base * typeMultiplier * randomFactor;
 }
@@ -50,13 +56,11 @@ function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
   const p1TypeMult = calcTypeMultiplier(p1Types, p2Types);
   const p2TypeMult = calcTypeMultiplier(p2Types, p1Types);
 
-  let p1HP = getStat(p1, "hp");
-  let p2HP = getStat(p2, "hp");
+  let p1HP = actualHP(getStat(p1, "hp"));
+  let p2HP = actualHP(getStat(p2, "hp"));
 
   const p1Speed = getStat(p1, "speed");
   const p2Speed = getStat(p2, "speed");
-
-  // 속도가 같으면 랜덤 선공
   const p1GoesFirst =
     p1Speed > p2Speed || (p1Speed === p2Speed && Math.random() < 0.5);
 
@@ -78,7 +82,7 @@ function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
   return p1HP > 0;
 }
 
-export function calcWinRate(attacker: Pokemon, defender: Pokemon): number {
+function calcWinRate(attacker: Pokemon, defender: Pokemon): number {
   let wins = 0;
   for (let i = 0; i < SIMULATIONS; i++) {
     if (simulateOnce(attacker, defender)) wins++;
@@ -90,19 +94,21 @@ export function calcBattleRanking(
   selected: Pokemon,
   allPokemons: Pokemon[],
 ): {
+  winRate: number;
   best: { pokemon: Pokemon; rate: number }[];
   worst: { pokemon: Pokemon; rate: number }[];
 } {
   const rates = allPokemons
     .filter((p) => p.id !== selected.id)
-    .map((p) => ({
-      pokemon: p,
-      rate: calcWinRate(selected, p),
-    }))
+    .map((p) => ({ pokemon: p, rate: calcWinRate(selected, p) }))
     .sort((a, b) => b.rate - a.rate);
 
+  const wins = rates.filter((r) => r.rate > 50).length;
+  const winRate = Math.round((wins / rates.length) * 100);
+
   return {
+    winRate,
     best: rates.slice(0, 3),
-    worst: rates.slice(-3),
+    worst: rates.slice(-3).reverse(),
   };
 }
