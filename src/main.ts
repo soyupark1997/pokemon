@@ -157,6 +157,19 @@ for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
     }),
   );
 
-  // 배치 완료 후 페이지네이션 갱신
-  renderPagination(getFiltered().length);
+  // 배치 완료 후: 필터가 활성화돼 있으면 현재 페이지 갱신 (새로 로드된 매칭 항목 반영)
+  if (currentLegendFilter !== "all" || currentTypeFilter !== "all") {
+    const filtered = getFiltered();
+    const start = (currentPage - 1) * PAGE_SIZE;
+    pokemonGrid.innerHTML = "";
+    filtered.slice(start, start + PAGE_SIZE).forEach((cardData) => {
+      const { pokemon, koName, isLegendary, isMythical } = cardData;
+      const card = createCard(pokemon, koName, isLegendary, isMythical);
+      card.addEventListener("click", () => openModal(cardData, allPokemons));
+      pokemonGrid.appendChild(card);
+    });
+    renderPagination(filtered.length);
+  } else {
+    renderPagination(getFiltered().length);
+  }
 }
