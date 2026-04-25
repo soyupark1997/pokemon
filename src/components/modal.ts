@@ -66,7 +66,9 @@ function renderBattleSection(
       </div>
       <div>
         <h3 class="font-bold text-red-400 mb-2">😬 비등하지만 질 TOP3</h3>
-        ${rankingRows(worst, "text-red-400")}
+        ${worst.length > 0
+          ? rankingRows(worst, "text-red-400")
+          : `<p class="text-xs text-gray-400 mt-2">비등한 패배 없음<br/>(완패하거나 전승)</p>`}
       </div>
     </div>`;
 }

@@ -115,9 +115,9 @@ export function calcBattleRanking(
     .sort((a, b) => a.rate - b.rate)
     .slice(0, 3);
 
-  // 진 것 중 승률이 50%에 가장 가까운 TOP3 (비등하지만 지는 상대)
+  // 진 것 중 승률이 50%에 가장 가까운 TOP3 (0%는 비등이 아니므로 제외)
   const worst = rates
-    .filter((r) => r.rate <= 50)
+    .filter((r) => r.rate > 0 && r.rate < 50)
     .sort((a, b) => b.rate - a.rate)
     .slice(0, 3);
 
