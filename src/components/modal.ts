@@ -97,7 +97,7 @@ export function openModal(
       <!-- 배틀 랭킹 -->
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <h3 class="font-bold text-green-500 mb-2">🏆 이기기 쉬운 TOP3</h3>
+          <h3 class="font-bold text-green-500 mb-2">😅 간신히 이기는 TOP3</h3>
           ${best
             .map(({ pokemon, rate }) => {
               const koName =
@@ -114,7 +114,7 @@ export function openModal(
             .join("")}
         </div>
         <div>
-          <h3 class="font-bold text-red-400 mb-2">💀 이기기 어려운 TOP3</h3>
+          <h3 class="font-bold text-red-400 mb-2">😬 비등하지만 질 TOP3</h3>
           ${worst
             .map(({ pokemon, rate }) => {
               const koName =

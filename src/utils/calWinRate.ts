@@ -106,9 +106,17 @@ export function calcBattleRanking(
   const wins = rates.filter((r) => r.rate > 50).length;
   const winRate = Math.round((wins / rates.length) * 100);
 
-  return {
-    winRate,
-    best: rates.slice(0, 3),
-    worst: rates.slice(-3).reverse(),
-  };
+  // 이긴 것 중 승률이 50%에 가장 가까운 TOP3 (간신히 이기는 상대)
+  const best = rates
+    .filter((r) => r.rate > 50)
+    .sort((a, b) => a.rate - b.rate)
+    .slice(0, 3);
+
+  // 진 것 중 승률이 50%에 가장 가까운 TOP3 (비등하지만 지는 상대)
+  const worst = rates
+    .filter((r) => r.rate <= 50)
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 3);
+
+  return { winRate, best, worst };
 }
