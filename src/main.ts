@@ -130,29 +130,34 @@ for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
   await Promise.all(
     batch.map(async (item, batchIndex) => {
       const index = i + batchIndex;
-      const [pokemon, legend] = await Promise.all([
-        getPokemon(item.name),
-        getPokemonLegend(item.name),
-      ]);
+      try {
+        const [pokemon, legend] = await Promise.all([
+          getPokemon(item.name),
+          getPokemonLegend(item.name),
+        ]);
 
-      const cardData: PokemonCardData = {
-        pokemon,
-        koName: legend.koName,
-        isLegendary: legend.isLegendary,
-        isMythical: legend.isMythical,
-      };
-
-      allPokemons[index] = cardData;
-
-      if (index < PAGE_SIZE) {
-        const card = createCard(
+        const cardData: PokemonCardData = {
           pokemon,
-          legend.koName,
-          legend.isLegendary,
-          legend.isMythical,
-        );
-        card.addEventListener("click", () => openModal(cardData, allPokemons));
-        document.getElementById(`skeleton-${index}`)?.replaceWith(card);
+          koName: legend.koName,
+          isLegendary: legend.isLegendary,
+          isMythical: legend.isMythical,
+        };
+
+        allPokemons[index] = cardData;
+
+        if (index < PAGE_SIZE) {
+          const card = createCard(
+            pokemon,
+            legend.koName,
+            legend.isLegendary,
+            legend.isMythical,
+          );
+          card.addEventListener("click", () => openModal(cardData, allPokemons));
+          document.getElementById(`skeleton-${index}`)?.replaceWith(card);
+        }
+      } catch {
+        // 한 포켓몬 로드 실패해도 나머지 계속 진행
+        document.getElementById(`skeleton-${index}`)?.remove();
       }
     }),
   );
