@@ -2,12 +2,156 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>게시판</title>
+    <title>포켓몬 도감</title>
   </head>
-  <body>
-    <div id="app"></div>
+  <body class="bg-amber-50 min-h-screen p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto mb-6 sm:mb-8">
+      <div class="flex items-center justify-center gap-3 mb-4 sm:mb-6">
+        <img
+          src="/public/longstone.webp"
+          alt="longstone"
+          class="w-8 h-8 sm:w-12 sm:h-12 object-contain"
+        />
+        <h1 class="text-2xl sm:text-4xl font-bold text-amber-400">포켓몬 도감</h1>
+      </div>
+
+      <div class="max-w-4xl mx-auto mb-6 sm:mb-8">
+        <div class="flex gap-2 justify-center flex-wrap mb-4">
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="legend-filter"
+              value="all"
+              checked
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-amber-200 text-amber-400 peer-checked:bg-amber-400 peer-checked:text-white transition-colors"
+              >전체</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="legend-filter"
+              value="legendary"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-yellow-300 text-yellow-500 peer-checked:bg-yellow-300 peer-checked:text-white transition-colors"
+              >⭐ 전설</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="legend-filter"
+              value="mythical"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-purple-300 text-purple-500 peer-checked:bg-purple-300 peer-checked:text-white transition-colors"
+              >✨ 환상</span
+            >
+          </label>
+        </div>
+
+        <div class="flex gap-2 justify-center flex-wrap">
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="type-filter"
+              value="all"
+              checked
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-amber-200 text-amber-400 peer-checked:bg-amber-400 peer-checked:text-white transition-colors"
+              >전체</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="type-filter"
+              value="fire"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-red-300 text-red-400 peer-checked:bg-red-300 peer-checked:text-white transition-colors"
+              >🔥 불꽃</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="type-filter"
+              value="water"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-blue-300 text-blue-400 peer-checked:bg-blue-300 peer-checked:text-white transition-colors"
+              >💧 물</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="type-filter"
+              value="grass"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-green-300 text-green-400 peer-checked:bg-green-300 peer-checked:text-white transition-colors"
+              >🌿 풀</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="type-filter"
+              value="electric"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-yellow-300 text-yellow-400 peer-checked:bg-yellow-300 peer-checked:text-white transition-colors"
+              >⚡ 전기</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="type-filter"
+              value="psychic"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-pink-300 text-pink-400 peer-checked:bg-pink-300 peer-checked:text-white transition-colors"
+              >🔮 에스퍼</span
+            >
+          </label>
+          <label class="cursor-pointer">
+            <input
+              type="radio"
+              name="type-filter"
+              value="dragon"
+              class="hidden peer"
+            />
+            <span
+              class="px-4 py-2 rounded-full border-2 border-indigo-300 text-indigo-400 peer-checked:bg-indigo-300 peer-checked:text-white transition-colors"
+              >🐉 드래곤</span
+            >
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="pokemon-grid"
+      class="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4"
+    ></div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
