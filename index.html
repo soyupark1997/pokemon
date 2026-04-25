@@ -17,47 +17,52 @@
       </div>
 
       <div class="max-w-4xl mx-auto mb-6 sm:mb-8">
-        <div class="flex gap-2 justify-center flex-wrap mb-4">
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              name="legend-filter"
-              value="all"
-              checked
-              class="hidden peer"
-            />
-            <span
-              class="px-4 py-2 rounded-full border-2 border-amber-200 text-amber-400 peer-checked:bg-amber-400 peer-checked:text-white transition-colors"
-              >전체</span
-            >
-          </label>
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              name="legend-filter"
-              value="legendary"
-              class="hidden peer"
-            />
-            <span
-              class="px-4 py-2 rounded-full border-2 border-yellow-300 text-yellow-500 peer-checked:bg-yellow-300 peer-checked:text-white transition-colors"
-              >⭐ 전설</span
-            >
-          </label>
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              name="legend-filter"
-              value="mythical"
-              class="hidden peer"
-            />
-            <span
-              class="px-4 py-2 rounded-full border-2 border-purple-300 text-purple-500 peer-checked:bg-purple-300 peer-checked:text-white transition-colors"
-              >✨ 환상</span
-            >
-          </label>
+        <div class="bg-white/60 rounded-2xl px-4 py-3 mb-3">
+          <p class="text-xs text-amber-400 font-semibold text-center mb-2 tracking-wide">희귀도</p>
+          <div class="flex gap-x-2 gap-y-2 justify-center flex-wrap">
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="legend-filter"
+                value="all"
+                checked
+                class="hidden peer"
+              />
+              <span
+                class="px-4 py-2 rounded-full border-2 border-amber-200 text-amber-400 peer-checked:bg-amber-400 peer-checked:text-white transition-colors"
+                >전체</span
+              >
+            </label>
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="legend-filter"
+                value="legendary"
+                class="hidden peer"
+              />
+              <span
+                class="px-4 py-2 rounded-full border-2 border-yellow-300 text-yellow-500 peer-checked:bg-yellow-300 peer-checked:text-white transition-colors"
+                >⭐ 전설</span
+              >
+            </label>
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="legend-filter"
+                value="mythical"
+                class="hidden peer"
+              />
+              <span
+                class="px-4 py-2 rounded-full border-2 border-purple-300 text-purple-500 peer-checked:bg-purple-300 peer-checked:text-white transition-colors"
+                >✨ 환상</span
+              >
+            </label>
+          </div>
         </div>
 
-        <div class="flex gap-2 justify-center flex-wrap">
+        <div class="bg-white/60 rounded-2xl px-4 py-3">
+          <p class="text-xs text-amber-400 font-semibold text-center mb-2 tracking-wide">타입</p>
+          <div class="flex gap-x-2 gap-y-3 justify-center flex-wrap">
           <label class="cursor-pointer">
             <input
               type="radio"
@@ -143,6 +148,7 @@
               >🐉 드래곤</span
             >
           </label>
+          </div>
         </div>
       </div>
     </div>
