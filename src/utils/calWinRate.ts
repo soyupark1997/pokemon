@@ -64,7 +64,10 @@ function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
   const p1GoesFirst =
     p1Speed > p2Speed || (p1Speed === p2Speed && Math.random() < 0.5);
 
+  let turns = 0;
   while (p1HP > 0 && p2HP > 0) {
+    if (++turns > 100) return p1HP >= p2HP; // 무한루프 방지 (스틸 등 저저항)
+
     const rand1 = 0.85 + Math.random() * 0.15;
     const rand2 = 0.85 + Math.random() * 0.15;
 

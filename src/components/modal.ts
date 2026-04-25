@@ -122,12 +122,14 @@ export function openModal(
           .join("")}
       </div>
 
-      <div id="battle-section" class="flex items-center justify-center py-6 text-amber-400 gap-2">
-        <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-        </svg>
-        <span class="text-sm">배틀 계산 중…</span>
+      <div id="battle-section">
+        <div class="flex items-center justify-center py-6 text-amber-400 gap-2">
+          <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          <span class="text-sm">배틀 계산 중…</span>
+        </div>
       </div>
 
     </div>
@@ -146,16 +148,27 @@ export function openModal(
 
   battleWorker.postMessage({ id: currentId, selected: selected.pokemon, allPokemons: allPokemonOnly });
 
+  const timer = setTimeout(() => {
+    const battleSection = modal.querySelector("#battle-section");
+    if (battleSection?.querySelector(".animate-spin")) {
+      battleSection.innerHTML = `<p class="text-center text-gray-400 text-sm py-4">배틀 데이터를 불러올 수 없어요</p>`;
+    }
+  }, 8000);
+
   battleWorker.onmessage = (e) => {
     if (e.data.id !== currentId) return;
+    clearTimeout(timer);
     const battleSection = modal.querySelector("#battle-section");
-    if (battleSection) {
-      battleSection.innerHTML = renderBattleSection(
-        e.data.result.winRate,
-        e.data.result.best,
-        e.data.result.worst,
-        allPokemons,
-      );
+    if (!battleSection) return;
+    if (!e.data.result) {
+      battleSection.innerHTML = `<p class="text-center text-gray-400 text-sm py-4">배틀 데이터를 불러올 수 없어요</p>`;
+      return;
     }
+    battleSection.innerHTML = renderBattleSection(
+      e.data.result.winRate,
+      e.data.result.best,
+      e.data.result.worst,
+      allPokemons,
+    );
   };
 }
