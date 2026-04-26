@@ -1,4 +1,5 @@
 import type { PokemonCardData } from "../types/pokemon";
+import { simulateOnce } from "../utils/calWinRate";
 
 const TYPE_MOVES: Record<string, string> = {
   fire: "불꽃방사",
@@ -34,8 +35,13 @@ function getMove(p: PokemonCardData): string {
   return "몸통박치기";
 }
 
-function calcPower(p: PokemonCardData): number {
-  return p.pokemon.stats.reduce((s, x) => s + x.base_stat, 0);
+// 타입 상성 포함 시뮬레이션 10회 다수결로 승패 결정
+function decidewinner(p1: PokemonCardData, p2: PokemonCardData): boolean {
+  let p1Wins = 0;
+  for (let i = 0; i < 10; i++) {
+    if (simulateOnce(p1.pokemon, p2.pokemon)) p1Wins++;
+  }
+  return p1Wins >= 5;
 }
 
 function makeAudience(): string {
@@ -51,10 +57,7 @@ function makeAudience(): string {
 export function openBattleModal(p1: PokemonCardData, p2: PokemonCardData) {
   document.getElementById("battle-modal")?.remove();
 
-  const p1Power = calcPower(p1);
-  const p2Power = calcPower(p2);
-  const bias = (Math.random() - 0.5) * 0.12;
-  const p1Wins = Math.random() < p1Power / (p1Power + p2Power) + bias;
+  const p1Wins = decidewinner(p1, p2);
 
   const winner = p1Wins ? p1 : p2;
   const loser = p1Wins ? p2 : p1;

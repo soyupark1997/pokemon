@@ -47,7 +47,7 @@ function renderBattleSection(
         <div class="flex items-center gap-2 mb-2">
           <img src="${pokemon.sprites.front_default}" class="w-8 h-8" />
           <span class="text-xs text-gray-600">${koName}</span>
-          <span class="text-xs font-bold text-amber-500 ml-auto">합계 ${totalStat}</span>
+          <span class="text-xs font-bold text-amber-500 ml-auto">총 스탯 ${totalStat}</span>
         </div>`;
     })
     .join("");

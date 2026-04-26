@@ -62,7 +62,7 @@ function calcDamage(attacker: Pokemon, defender: Pokemon): number {
   );
 }
 
-function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
+export function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
   let p1HP = actualHP(getStat(p1, "hp"));
   let p2HP = actualHP(getStat(p2, "hp"));
 
