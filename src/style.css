@@ -1,1 +1,76 @@
 @import "tailwindcss";
+
+@keyframes battleShake {
+  0%, 100% { transform: translateX(0); }
+  15%  { transform: translateX(-9px) rotate(-2deg); }
+  30%  { transform: translateX(9px)  rotate( 2deg); }
+  45%  { transform: translateX(-7px) rotate(-1deg); }
+  60%  { transform: translateX(7px)  rotate( 1deg); }
+  75%  { transform: translateX(-4px); }
+  90%  { transform: translateX(4px);  }
+}
+
+@keyframes screenShake {
+  0%,100%{ transform: translate(0,0) rotate(0deg); }
+  10%    { transform: translate(-5px,-2px) rotate(-0.4deg); }
+  20%    { transform: translate( 5px, 2px) rotate( 0.4deg); }
+  30%    { transform: translate(-7px, 2px) rotate(-0.3deg); }
+  40%    { transform: translate( 7px,-2px) rotate( 0.3deg); }
+  50%    { transform: translate(-4px, 4px) rotate(-0.4deg); }
+  60%    { transform: translate( 4px,-4px) rotate( 0.4deg); }
+  75%    { transform: translate(-2px, 2px); }
+  90%    { transform: translate( 2px,-2px); }
+}
+
+@keyframes hitFade {
+  0%   { opacity: 1; transform: scale(0.4); }
+  50%  { opacity: 1; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(1.1) translateY(-28px); }
+}
+
+@keyframes sparkPop {
+  0%   { opacity: 0; transform: scale(0.3) translateY(6px); }
+  30%  { opacity: 1; transform: scale(1.4); }
+  70%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9) translateY(-22px); }
+}
+
+@keyframes vsPulse {
+  0%,100%{ transform: scale(1); }
+  50%    { transform: scale(1.7); filter: drop-shadow(0 0 10px #fbbf24); }
+}
+
+@keyframes victoryBounce {
+  from { transform: translateY(0) scale(1); }
+  to   { transform: translateY(-14px) scale(1.07); }
+}
+
+@keyframes fadeInResult {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes particleFly {
+  0%   { opacity: 1; transform: scale(0.5) translate(0, 0); }
+  100% { opacity: 0; transform: scale(1.6) translate(0, -65px); }
+}
+
+@keyframes chargeRight {
+  0%,100%{ transform: scaleX(1) translateX(0); }
+  40%    { transform: scaleX(1) translateX(55px); }
+}
+
+@keyframes chargeLeft {
+  0%,100%{ transform: scaleX(-1) translateX(0); }
+  40%    { transform: scaleX(-1) translateX(55px); }
+}
+
+@keyframes loserFall {
+  0%   { transform: rotate(0deg) translateY(0); opacity: 1; }
+  100% { transform: rotate(85deg) translateY(30px); opacity: 0.2; }
+}
+
+.battle-selected {
+  outline: 3px solid #f59e0b !important;
+  box-shadow: 0 0 18px rgba(245,158,11,0.75) !important;
+}

@@ -93,33 +93,29 @@ function calcWinRate(attacker: Pokemon, defender: Pokemon): number {
   return Math.round((wins / SIMULATIONS) * 100);
 }
 
+function totalStat(p: Pokemon): number {
+  return p.stats.reduce((sum, s) => sum + s.base_stat, 0);
+}
+
 export function calcBattleRanking(
   selected: Pokemon,
   allPokemons: Pokemon[],
 ): {
   winRate: number;
-  best: { pokemon: Pokemon; rate: number }[];
-  worst: { pokemon: Pokemon; rate: number }[];
+  similar: { pokemon: Pokemon; totalStat: number }[];
 } {
-  const rates = allPokemons
-    .filter((p) => p.id !== selected.id)
-    .map((p) => ({ pokemon: p, rate: calcWinRate(selected, p) }))
-    .sort((a, b) => b.rate - a.rate);
+  const others = allPokemons.filter((p) => p.id !== selected.id);
 
+  const rates = others.map((p) => ({ pokemon: p, rate: calcWinRate(selected, p) }));
   const wins = rates.filter((r) => r.rate > 50).length;
   const winRate = Math.round((wins / rates.length) * 100);
 
-  // 이긴 것 중 승률이 50%에 가장 가까운 TOP3 (간신히 이기는 상대)
-  const best = rates
-    .filter((r) => r.rate > 50)
-    .sort((a, b) => a.rate - b.rate)
-    .slice(0, 3);
+  const myTotal = totalStat(selected);
+  const similar = others
+    .map((p) => ({ pokemon: p, totalStat: totalStat(p), diff: Math.abs(totalStat(p) - myTotal) }))
+    .sort((a, b) => a.diff - b.diff)
+    .slice(0, 3)
+    .map(({ pokemon, totalStat: ts }) => ({ pokemon, totalStat: ts }));
 
-  // 진 것 중 승률이 50%에 가장 가까운 TOP3 (0%는 비등이 아니므로 제외)
-  const worst = rates
-    .filter((r) => r.rate > 0 && r.rate < 50)
-    .sort((a, b) => b.rate - a.rate)
-    .slice(0, 3);
-
-  return { winRate, best, worst };
+  return { winRate, similar };
 }

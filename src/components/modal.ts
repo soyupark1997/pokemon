@@ -36,40 +36,30 @@ const statMaxMap: Record<string, number> = {
 
 function renderBattleSection(
   winRate: number,
-  best: { pokemon: Pokemon; rate: number }[],
-  worst: { pokemon: Pokemon; rate: number }[],
+  similar: { pokemon: Pokemon; totalStat: number }[],
   allPokemons: PokemonCardData[],
 ): string {
-  const rankingRows = (items: { pokemon: Pokemon; rate: number }[], color: string) =>
-    items
-      .map(({ pokemon, rate }) => {
-        const koName =
-          allPokemons.find((p) => p?.pokemon.id === pokemon.id)?.koName ?? pokemon.name;
-        return `
-          <div class="flex items-center gap-2 mb-1">
-            <img src="${pokemon.sprites.front_default}" class="w-8 h-8" />
-            <span class="text-xs text-gray-600">${koName}</span>
-            <span class="text-xs font-bold ${color} ml-auto">${rate}%</span>
-          </div>`;
-      })
-      .join("");
+  const similarRows = similar
+    .map(({ pokemon, totalStat }) => {
+      const koName =
+        allPokemons.find((p) => p?.pokemon.id === pokemon.id)?.koName ?? pokemon.name;
+      return `
+        <div class="flex items-center gap-2 mb-2">
+          <img src="${pokemon.sprites.front_default}" class="w-8 h-8" />
+          <span class="text-xs text-gray-600">${koName}</span>
+          <span class="text-xs font-bold text-amber-500 ml-auto">합계 ${totalStat}</span>
+        </div>`;
+    })
+    .join("");
 
   return `
     <div class="mb-4 text-center bg-white/60 rounded-2xl py-3">
       <p class="text-xs text-gray-400 mb-1">전체 포켓몬 대상 승률</p>
       <p class="text-3xl font-bold ${winRate >= 50 ? "text-green-500" : "text-red-400"}">${winRate}%</p>
     </div>
-    <div class="grid grid-cols-2 gap-3">
-      <div>
-        <h3 class="font-bold text-green-500 mb-2">😅 간신히 이기는 TOP3</h3>
-        ${rankingRows(best, "text-green-500")}
-      </div>
-      <div>
-        <h3 class="font-bold text-red-400 mb-2">😬 비등하지만 질 TOP3</h3>
-        ${worst.length > 0
-          ? rankingRows(worst, "text-red-400")
-          : `<p class="text-xs text-gray-400 mt-2">비등한 패배 없음<br/>(완패하거나 전승)</p>`}
-      </div>
+    <div>
+      <h3 class="font-bold text-amber-500 mb-2">🤝 나랑 비슷한 포켓몬 TOP3</h3>
+      ${similarRows}
     </div>`;
 }
 
@@ -168,8 +158,7 @@ export function openModal(
     }
     battleSection.innerHTML = renderBattleSection(
       e.data.result.winRate,
-      e.data.result.best,
-      e.data.result.worst,
+      e.data.result.similar,
       allPokemons,
     );
   };

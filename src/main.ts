@@ -1,6 +1,7 @@
 import { getPokemon, getPokemonList, getPokemonLegend } from "./api/fetcher";
 import { createCard, createSkeletonCard } from "./components/card";
 import { openModal } from "./components/modal";
+import { openBattleModal } from "./components/battleModal";
 import type { PokemonCardData } from "./types/pokemon";
 import "./style.css";
 
@@ -17,6 +18,88 @@ let currentTypeFilter = "all";
 let currentSearchQuery = "";
 let currentPage = 1;
 
+// ── Battle mode state ───────────────────────────────────────────
+let battleMode = false;
+const battleSelected: PokemonCardData[] = [];
+
+function updateBattleBanner() {
+  const banner = document.getElementById("battle-banner")!;
+  const count = battleSelected.length;
+  if (count === 0) {
+    banner.textContent = "배틀할 포켓몬 2마리를 선택하세요";
+  } else if (count === 1) {
+    banner.textContent = `${battleSelected[0].koName} 선택됨 — 상대 포켓몬을 선택하세요`;
+  } else {
+    banner.textContent = "배틀 준비 중...";
+  }
+}
+
+function clearBattleSelection() {
+  battleSelected.length = 0;
+  document.querySelectorAll(".battle-selected").forEach((el) =>
+    el.classList.remove("battle-selected"),
+  );
+  updateBattleBanner();
+}
+
+function toggleBattleMode() {
+  battleMode = !battleMode;
+  const btn = document.getElementById("battle-mode-btn")!;
+  const banner = document.getElementById("battle-banner")!;
+
+  if (battleMode) {
+    btn.textContent = "⚔️ 배틀 모드 종료";
+    btn.className =
+      "px-5 py-2 rounded-full bg-red-400 text-white font-bold text-sm transition-colors hover:bg-red-500";
+    banner.classList.remove("hidden");
+  } else {
+    btn.textContent = "⚔️ 배틀 모드";
+    btn.className =
+      "px-5 py-2 rounded-full border-2 border-red-300 text-red-400 font-bold text-sm transition-colors hover:bg-red-50";
+    banner.classList.add("hidden");
+    clearBattleSelection();
+  }
+}
+
+function handleBattleSelect(cardData: PokemonCardData, card: HTMLElement) {
+  const idx = battleSelected.findIndex((p) => p.pokemon.id === cardData.pokemon.id);
+
+  if (idx !== -1) {
+    battleSelected.splice(idx, 1);
+    card.classList.remove("battle-selected");
+    updateBattleBanner();
+    return;
+  }
+
+  if (battleSelected.length >= 2) return;
+
+  battleSelected.push(cardData);
+  card.classList.add("battle-selected");
+  updateBattleBanner();
+
+  if (battleSelected.length === 2) {
+    setTimeout(() => {
+      openBattleModal(battleSelected[0], battleSelected[1]);
+      clearBattleSelection();
+    }, 300);
+  }
+}
+
+// ── Card factory (centralises click handling) ───────────────────
+function createCardWithHandler(cardData: PokemonCardData): HTMLElement {
+  const { pokemon, koName, isLegendary, isMythical } = cardData;
+  const card = createCard(pokemon, koName, isLegendary, isMythical);
+  card.addEventListener("click", () => {
+    if (battleMode) {
+      handleBattleSelect(cardData, card);
+    } else {
+      openModal(cardData, allPokemons);
+    }
+  });
+  return card;
+}
+
+// ── Filtering ───────────────────────────────────────────────────
 function getFiltered() {
   return allPokemons
     .filter(Boolean)
@@ -29,13 +112,13 @@ function getFiltered() {
         currentTypeFilter === "all" ||
         pokemon.types.some((t) => t.type.name === currentTypeFilter);
       const searchMatch =
-        currentSearchQuery === "" ||
-        koName.includes(currentSearchQuery);
+        currentSearchQuery === "" || koName.includes(currentSearchQuery);
       return legendMatch && typeMatch && searchMatch;
     })
     .sort((a, b) => a.pokemon.id - b.pokemon.id);
 }
 
+// ── Pagination ──────────────────────────────────────────────────
 function renderPagination(totalItems: number) {
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
   paginationEl.innerHTML = "";
@@ -81,10 +164,7 @@ function goToPage(page: number) {
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   pageItems.forEach((cardData) => {
-    const { pokemon, koName, isLegendary, isMythical } = cardData;
-    const card = createCard(pokemon, koName, isLegendary, isMythical);
-    card.addEventListener("click", () => openModal(cardData, allPokemons));
-    pokemonGrid.appendChild(card);
+    pokemonGrid.appendChild(createCardWithHandler(cardData));
   });
 
   renderPagination(filtered.length);
@@ -97,15 +177,13 @@ function renderFiltered() {
 
   const filtered = getFiltered();
   filtered.slice(0, PAGE_SIZE).forEach((cardData) => {
-    const { pokemon, koName, isLegendary, isMythical } = cardData;
-    const card = createCard(pokemon, koName, isLegendary, isMythical);
-    card.addEventListener("click", () => openModal(cardData, allPokemons));
-    pokemonGrid.appendChild(card);
+    pokemonGrid.appendChild(createCardWithHandler(cardData));
   });
 
   renderPagination(filtered.length);
 }
 
+// ── Filter listeners ────────────────────────────────────────────
 const searchInput = document.getElementById("search-input") as HTMLInputElement;
 searchInput.addEventListener("input", (e) => {
   currentSearchQuery = (e.target as HTMLInputElement).value.trim();
@@ -126,6 +204,9 @@ document.querySelectorAll('input[name="type-filter"]').forEach((radio) => {
   });
 });
 
+document.getElementById("battle-mode-btn")!.addEventListener("click", toggleBattleMode);
+
+// ── Initial load ────────────────────────────────────────────────
 const list = await getPokemonList(721);
 
 const skeletonCount = Math.min(list.results.length, PAGE_SIZE);
@@ -142,7 +223,6 @@ for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
       const index = i + batchIndex;
       try {
         const pokemon = await getPokemon(item.name);
-        // 폼 이름(deoxys-normal 등) 대신 species 이름으로 요청
         const legend = await getPokemonLegend(pokemon.species.name);
 
         const cardData: PokemonCardData = {
@@ -155,32 +235,21 @@ for (let i = 0; i < list.results.length; i += BATCH_SIZE) {
         allPokemons[index] = cardData;
 
         if (index < PAGE_SIZE) {
-          const card = createCard(
-            pokemon,
-            legend.koName,
-            legend.isLegendary,
-            legend.isMythical,
-          );
-          card.addEventListener("click", () => openModal(cardData, allPokemons));
+          const card = createCardWithHandler(cardData);
           document.getElementById(`skeleton-${index}`)?.replaceWith(card);
         }
       } catch {
-        // 한 포켓몬 로드 실패해도 나머지 계속 진행
         document.getElementById(`skeleton-${index}`)?.remove();
       }
     }),
   );
 
-  // 배치 완료 후: 필터가 활성화돼 있으면 현재 페이지 갱신 (새로 로드된 매칭 항목 반영)
-  if (currentLegendFilter !== "all" || currentTypeFilter !== "all") {
+  if (currentLegendFilter !== "all" || currentTypeFilter !== "all" || currentSearchQuery !== "") {
     const filtered = getFiltered();
     const start = (currentPage - 1) * PAGE_SIZE;
     pokemonGrid.innerHTML = "";
     filtered.slice(start, start + PAGE_SIZE).forEach((cardData) => {
-      const { pokemon, koName, isLegendary, isMythical } = cardData;
-      const card = createCard(pokemon, koName, isLegendary, isMythical);
-      card.addEventListener("click", () => openModal(cardData, allPokemons));
-      pokemonGrid.appendChild(card);
+      pokemonGrid.appendChild(createCardWithHandler(cardData));
     });
     renderPagination(filtered.length);
   } else {
