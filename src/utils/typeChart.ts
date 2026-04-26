@@ -50,7 +50,7 @@ export const typeChart: Record<string, Record<string, number>> = {
     fairy: 0,
   },
 
-  normal: {},
+  normal: { ghost: 0 },
   fighting: {
     normal: 2,
     ice: 2,

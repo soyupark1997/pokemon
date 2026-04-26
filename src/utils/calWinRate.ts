@@ -16,46 +16,53 @@ function actualStat(base: number): number {
   return Math.floor(base) + 5;
 }
 
-function calcTypeMultiplier(
+// 공격자 타입 중 가장 유리한 타입을 선택 → type1, type2 분리 반환
+function chooseBestAttack(
   attackTypes: string[],
   defenseTypes: string[],
-): number {
-  let multiplier = 1;
-  attackTypes.forEach((atk) => {
-    defenseTypes.forEach((def) => {
-      multiplier *= typeChart[atk]?.[def] ?? 1;
-    });
-  });
-  return multiplier;
+): { type1: number; type2: number } {
+  let best = { type1: 1, type2: 1, total: -Infinity };
+  for (const atkType of attackTypes) {
+    const t1 = typeChart[atkType]?.[defenseTypes[0]] ?? 1;
+    const t2 = defenseTypes[1] ? (typeChart[atkType]?.[defenseTypes[1]] ?? 1) : 1;
+    if (t1 * t2 > best.total) best = { type1: t1, type2: t2, total: t1 * t2 };
+  }
+  return { type1: best.type1, type2: best.type2 };
 }
 
-function calcDamage(
-  attacker: Pokemon,
-  defender: Pokemon,
-  typeMultiplier: number,
-  randomFactor: number,
-): number {
+// 4세대 공식 데미지 공식
+// floor(floor(floor(floor(floor(L*2/5+2)*Power*A/50)/D*mod1)+2)*crit*mod2*rnd/100*stab*type1*type2*mod3)
+function calcDamage(attacker: Pokemon, defender: Pokemon): number {
+  const level = 50;
   const atk = actualStat(getStat(attacker, "attack"));
   const spAtk = actualStat(getStat(attacker, "special-attack"));
   const def = actualStat(getStat(defender, "defense"));
   const spDef = actualStat(getStat(defender, "special-defense"));
 
-  const [atkStat, defStat] =
-    atk / def >= spAtk / spDef ? [atk, def] : [spAtk, spDef];
+  const [A, D] = atk / def >= spAtk / spDef ? [atk, def] : [spAtk, spDef];
 
-  const base =
-    (((2 * 50) / 5 + 2) * MOVE_POWER * (atkStat / defStat)) / 50 + 2;
+  const { type1, type2 } = chooseBestAttack(
+    attacker.types.map((t) => t.type.name),
+    defender.types.map((t) => t.type.name),
+  );
 
-  return base * typeMultiplier * randomFactor;
+  const stab = 1.5; // 자신 타입 기술 사용 → 자속보정 항상 적용
+  const isCrit = Math.random() < 0.0417; // Gen4 크리티컬 확률 ~1/24
+  const crit = isCrit ? 2.0 : 1.0;
+  const random = Math.floor(Math.random() * 16 + 85); // 85~100 정수
+
+  return Math.floor(
+    Math.floor(
+      Math.floor(
+        Math.floor(Math.floor((level * 2) / 5 + 2) * MOVE_POWER * A / 50) / D,
+        // mod1 = 1 (화상/도구 없음)
+      ) + 2,
+    ) * crit * random / 100  // mod2 = 1
+    * stab * type1 * type2,  // mod3 = 1
+  );
 }
 
 function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
-  const p1Types = p1.types.map((t) => t.type.name);
-  const p2Types = p2.types.map((t) => t.type.name);
-
-  const p1TypeMult = calcTypeMultiplier(p1Types, p2Types);
-  const p2TypeMult = calcTypeMultiplier(p2Types, p1Types);
-
   let p1HP = actualHP(getStat(p1, "hp"));
   let p2HP = actualHP(getStat(p2, "hp"));
 
@@ -66,19 +73,16 @@ function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
 
   let turns = 0;
   while (p1HP > 0 && p2HP > 0) {
-    if (++turns > 100) return p1HP >= p2HP; // 무한루프 방지 (스틸 등 저저항)
-
-    const rand1 = 0.85 + Math.random() * 0.15;
-    const rand2 = 0.85 + Math.random() * 0.15;
+    if (++turns > 100) return p1HP >= p2HP;
 
     if (p1GoesFirst) {
-      p2HP -= calcDamage(p1, p2, p1TypeMult, rand1);
+      p2HP -= calcDamage(p1, p2);
       if (p2HP <= 0) return true;
-      p1HP -= calcDamage(p2, p1, p2TypeMult, rand2);
+      p1HP -= calcDamage(p2, p1);
     } else {
-      p1HP -= calcDamage(p2, p1, p2TypeMult, rand1);
+      p1HP -= calcDamage(p2, p1);
       if (p1HP <= 0) return false;
-      p2HP -= calcDamage(p1, p2, p1TypeMult, rand2);
+      p2HP -= calcDamage(p1, p2);
     }
   }
 
