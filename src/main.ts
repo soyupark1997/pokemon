@@ -14,12 +14,13 @@ const allPokemons: PokemonCardData[] = [];
 
 let currentLegendFilter = "all";
 let currentTypeFilter = "all";
+let currentSearchQuery = "";
 let currentPage = 1;
 
 function getFiltered() {
   return allPokemons
     .filter(Boolean)
-    .filter(({ pokemon, isLegendary, isMythical }) => {
+    .filter(({ pokemon, koName, isLegendary, isMythical }) => {
       const legendMatch =
         currentLegendFilter === "all" ||
         (currentLegendFilter === "legendary" && isLegendary) ||
@@ -27,7 +28,10 @@ function getFiltered() {
       const typeMatch =
         currentTypeFilter === "all" ||
         pokemon.types.some((t) => t.type.name === currentTypeFilter);
-      return legendMatch && typeMatch;
+      const searchMatch =
+        currentSearchQuery === "" ||
+        koName.includes(currentSearchQuery);
+      return legendMatch && typeMatch && searchMatch;
     })
     .sort((a, b) => a.pokemon.id - b.pokemon.id);
 }
@@ -101,6 +105,12 @@ function renderFiltered() {
 
   renderPagination(filtered.length);
 }
+
+const searchInput = document.getElementById("search-input") as HTMLInputElement;
+searchInput.addEventListener("input", (e) => {
+  currentSearchQuery = (e.target as HTMLInputElement).value.trim();
+  renderFiltered();
+});
 
 document.querySelectorAll('input[name="legend-filter"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
