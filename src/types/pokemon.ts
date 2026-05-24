@@ -1,4 +1,3 @@
-// 목록 API 응답 타입
 export interface PokemonListResponse {
   count: number;
   next: string | null;
@@ -18,6 +17,10 @@ export interface Pokemon {
   types: PokemonType[];
   stats: PokemonStat[];
   species: { name: string };
+  cries: {
+    latest: string | null;
+    legacy: string | null;
+  };
 }
 
 export interface Sprites {
@@ -52,6 +55,11 @@ export interface PokemonSpecies {
     language: {
       name: string;
     };
+  }[];
+  flavor_text_entries: {
+    flavor_text: string;
+    language: { name: string };
+    version: { name: string };
   }[];
   is_legendary: boolean;
   is_mythical: boolean;

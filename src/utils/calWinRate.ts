@@ -1,4 +1,4 @@
-import type { Pokemon } from "../types/pokemon";
+import type { Pokemon } from "@/types/pokemon";
 import { typeChart } from "./typeChart";
 
 const MOVE_POWER = 80;
@@ -16,7 +16,6 @@ function actualStat(base: number): number {
   return Math.floor(base) + 5;
 }
 
-// 공격자 타입 중 가장 유리한 타입을 선택 → type1, type2 분리 반환
 function chooseBestAttack(
   attackTypes: string[],
   defenseTypes: string[],
@@ -30,8 +29,6 @@ function chooseBestAttack(
   return { type1: best.type1, type2: best.type2 };
 }
 
-// 4세대 공식 데미지 공식
-// floor(floor(floor(floor(floor(L*2/5+2)*Power*A/50)/D*mod1)+2)*crit*mod2*rnd/100*stab*type1*type2*mod3)
 function calcDamage(attacker: Pokemon, defender: Pokemon): number {
   const level = 50;
   const atk = actualStat(getStat(attacker, "attack"));
@@ -46,19 +43,18 @@ function calcDamage(attacker: Pokemon, defender: Pokemon): number {
     defender.types.map((t) => t.type.name),
   );
 
-  const stab = 1.5; // 자신 타입 기술 사용 → 자속보정 항상 적용
-  const isCrit = Math.random() < 0.0417; // Gen4 크리티컬 확률 ~1/24
+  const stab = 1.5;
+  const isCrit = Math.random() < 0.0417;
   const crit = isCrit ? 2.0 : 1.0;
-  const random = Math.floor(Math.random() * 16 + 85); // 85~100 정수
+  const random = Math.floor(Math.random() * 16 + 85);
 
   return Math.floor(
     Math.floor(
       Math.floor(
         Math.floor(Math.floor((level * 2) / 5 + 2) * MOVE_POWER * A / 50) / D,
-        // mod1 = 1 (화상/도구 없음)
       ) + 2,
-    ) * crit * random / 100  // mod2 = 1
-    * stab * type1 * type2,  // mod3 = 1
+    ) * crit * random / 100
+    * stab * type1 * type2,
   );
 }
 
@@ -97,29 +93,15 @@ function calcWinRate(attacker: Pokemon, defender: Pokemon): number {
   return Math.round((wins / SIMULATIONS) * 100);
 }
 
-function totalStat(p: Pokemon): number {
-  return p.stats.reduce((sum, s) => sum + s.base_stat, 0);
-}
 
 export function calcBattleRanking(
   selected: Pokemon,
   allPokemons: Pokemon[],
-): {
-  winRate: number;
-  similar: { pokemon: Pokemon; totalStat: number }[];
-} {
+): { winRate: number } {
   const others = allPokemons.filter((p) => p.id !== selected.id);
-
-  const rates = others.map((p) => ({ pokemon: p, rate: calcWinRate(selected, p) }));
+  if (others.length === 0) return { winRate: 0 };
+  const rates = others.map((p) => ({ rate: calcWinRate(selected, p) }));
   const wins = rates.filter((r) => r.rate > 50).length;
-  const winRate = Math.round((wins / rates.length) * 100);
-
-  const myTotal = totalStat(selected);
-  const similar = others
-    .map((p) => ({ pokemon: p, totalStat: totalStat(p), diff: Math.abs(totalStat(p) - myTotal) }))
-    .sort((a, b) => a.diff - b.diff)
-    .slice(0, 3)
-    .map(({ pokemon, totalStat: ts }) => ({ pokemon, totalStat: ts }));
-
-  return { winRate, similar };
+  const winRate = Math.round((wins / others.length) * 100);
+  return { winRate };
 }

@@ -2,7 +2,7 @@ import type {
   Pokemon,
   PokemonListResponse,
   PokemonSpecies,
-} from "../types/pokemon";
+} from "@/types/pokemon";
 
 const BASE_URL = "https://pokeapi.co/api/v2";
 
