@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { PokemonCardData } from "@/types/pokemon";
 import { decidewinner, getMove, josa } from "@/utils/battleLogic";
 import { useBattleAnimation } from "@/components/BattleModalAnimation";
@@ -14,6 +14,14 @@ interface Props {
 export default function BattleModal({ p1, p2, onClose }: Props) {
   const p1Wins = useMemo(() => decidewinner(p1, p2), [p1, p2]);
   const containerRef = useBattleAnimation(p1, p2, p1Wins);
+  const [copied, setCopied] = useState(false);
+
+  function handleShare() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   const winner = p1Wins ? p1 : p2;
   const loser = p1Wins ? p2 : p1;
@@ -265,12 +273,20 @@ export default function BattleModal({ p1, p2, onClose }: Props) {
             <span className="text-yellow-300 font-black">{winnerMove}</span>{" "}
             때문에 패배했다
           </div>
-          <button
-            onClick={onClose}
-            className="mt-6 px-8 py-3 bg-amber-400 hover:bg-amber-500 text-white rounded-full font-black text-lg shadow-lg transition-colors"
-          >
-            닫기
-          </button>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={handleShare}
+              className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white rounded-full font-black text-lg shadow-lg transition-colors"
+            >
+              {copied ? "복사됨!" : "🔗 공유"}
+            </button>
+            <button
+              onClick={onClose}
+              className="px-8 py-3 bg-amber-400 hover:bg-amber-500 text-white rounded-full font-black text-lg shadow-lg transition-colors"
+            >
+              닫기
+            </button>
+          </div>
         </div>
       </div>
     </div>

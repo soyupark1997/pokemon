@@ -1,14 +1,17 @@
 "use client";
 
+import { memo } from "react";
 import type { PokemonCardData } from "@/types/pokemon";
+import { typeNameKo } from "@/constants/typeNameKo";
+import { typeColor } from "@/utils/typeColor";
 
 interface Props {
   data: PokemonCardData;
-  onClick: () => void;
+  onClick: (data: PokemonCardData) => void;
   isSelected?: boolean;
 }
 
-export default function PokemonCard({ data, onClick, isSelected }: Props) {
+const PokemonCard = memo(function PokemonCard({ data, onClick, isSelected }: Props) {
   const { pokemon, koName, isLegendary, isMythical } = data;
   const img =
     pokemon.sprites.other["official-artwork"].front_default ??
@@ -22,7 +25,7 @@ export default function PokemonCard({ data, onClick, isSelected }: Props) {
 
   return (
     <div
-      onClick={onClick}
+      onClick={() => onClick(data)}
       className={`bg-white rounded-2xl p-3 sm:p-4 text-center shadow-md border-2 ${borderClass} sm:hover:scale-105 active:scale-95 transition-transform cursor-pointer ${isSelected ? "ring-2 ring-red-400 ring-offset-2" : ""}`}
     >
       <img
@@ -47,12 +50,14 @@ export default function PokemonCard({ data, onClick, isSelected }: Props) {
         {pokemon.types.map((t) => (
           <span
             key={t.type.name}
-            className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-600"
+            className={`text-xs px-2 py-1 rounded-full ${typeColor[t.type.name] ?? "bg-amber-100 text-amber-600"}`}
           >
-            {t.type.name}
+            {typeNameKo[t.type.name] ?? t.type.name}
           </span>
         ))}
       </div>
     </div>
   );
-}
+});
+
+export default PokemonCard;

@@ -1,10 +1,10 @@
-import type { Pokemon } from "@/types/pokemon";
+import type { SlimPokemon } from "@/types/pokemon";
 import { typeChart } from "./typeChart";
 
 const MOVE_POWER = 80;
 const SIMULATIONS = 30;
 
-function getStat(pokemon: Pokemon, name: string): number {
+function getStat(pokemon: SlimPokemon, name: string): number {
   return pokemon.stats.find((s) => s.stat.name === name)?.base_stat ?? 1;
 }
 
@@ -29,7 +29,7 @@ function chooseBestAttack(
   return { type1: best.type1, type2: best.type2 };
 }
 
-function calcDamage(attacker: Pokemon, defender: Pokemon): number {
+function calcDamage(attacker: SlimPokemon, defender: SlimPokemon): number {
   const level = 50;
   const atk = actualStat(getStat(attacker, "attack"));
   const spAtk = actualStat(getStat(attacker, "special-attack"));
@@ -58,7 +58,7 @@ function calcDamage(attacker: Pokemon, defender: Pokemon): number {
   );
 }
 
-export function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
+export function simulateOnce(p1: SlimPokemon, p2: SlimPokemon): boolean {
   let p1HP = actualHP(getStat(p1, "hp"));
   let p2HP = actualHP(getStat(p2, "hp"));
 
@@ -85,7 +85,7 @@ export function simulateOnce(p1: Pokemon, p2: Pokemon): boolean {
   return p1HP > 0;
 }
 
-function calcWinRate(attacker: Pokemon, defender: Pokemon): number {
+function calcWinRate(attacker: SlimPokemon, defender: SlimPokemon): number {
   let wins = 0;
   for (let i = 0; i < SIMULATIONS; i++) {
     if (simulateOnce(attacker, defender)) wins++;
@@ -95,8 +95,8 @@ function calcWinRate(attacker: Pokemon, defender: Pokemon): number {
 
 
 export function calcBattleRanking(
-  selected: Pokemon,
-  allPokemons: Pokemon[],
+  selected: SlimPokemon,
+  allPokemons: SlimPokemon[],
 ): { winRate: number } {
   const others = allPokemons.filter((p) => p.id !== selected.id);
   if (others.length === 0) return { winRate: 0 };

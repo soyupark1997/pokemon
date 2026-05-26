@@ -1,7 +1,7 @@
 import { calcBattleRanking } from "./calWinRate";
-import type { Pokemon } from "@/types/pokemon";
+import type { SlimPokemon } from "@/types/pokemon";
 
-self.onmessage = (e: MessageEvent<{ selected: Pokemon; allPokemons: Pokemon[] }>) => {
+self.onmessage = (e: MessageEvent<{ selected: SlimPokemon; allPokemons: SlimPokemon[] }>) => {
   const { selected, allPokemons } = e.data;
   try {
     const result = calcBattleRanking(selected, allPokemons);

@@ -138,7 +138,6 @@ export function useBattleAnimation(
       blog.textContent = text;
     }
 
-    // 애니메이션 시퀀스
     log("배틀 시작!");
     shake(p1El, 250);
     shake(p2El, 250);
@@ -254,8 +253,7 @@ export function useBattleAnimation(
         hp1 = 0;
         setHp(p1Hp, 0);
       }
-      loserEl.style.transition =
-        "transform 0.7s ease-in, opacity 0.7s ease-in";
+      loserEl.style.transition = "transform 0.7s ease-in, opacity 0.7s ease-in";
       loserEl.style.transform = "rotate(80deg) translateY(24px)";
       loserEl.style.opacity = "0.2";
     }, 4100);

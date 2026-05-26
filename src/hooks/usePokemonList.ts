@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import type { PokemonCardData } from "@/types/pokemon";
 import { getPokemon, getPokemonLegend } from "@/api/fetcher";
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 50;
 
 export function usePokemonList(pokemonNames: string[]) {
   const [allPokemons, setAllPokemons] = useState<(PokemonCardData | null)[]>(
@@ -21,8 +21,13 @@ export function usePokemonList(pokemonNames: string[]) {
           batch.map(async (name, batchIndex) => {
             const index = i + batchIndex;
             try {
-              const pokemon = await getPokemon(name);
-              const legend  = await getPokemonLegend(pokemon.species.name);
+              // pokemon 호출과 species 호출을 동시에 시작 (species name = pokemon name인 경우가 대부분)
+              const [pokemon, speculativeLegend] = await Promise.all([
+                getPokemon(name),
+                getPokemonLegend(name).catch(() => null),
+              ]);
+              // 추측이 실패한 경우(폼 포켓몬 등)에만 올바른 species name으로 재시도
+              const legend = speculativeLegend ?? await getPokemonLegend(pokemon.species.name);
               if (cancelled) return;
               const cardData: PokemonCardData = {
                 pokemon,

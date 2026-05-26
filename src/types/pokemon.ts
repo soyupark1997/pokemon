@@ -71,3 +71,9 @@ export interface PokemonCardData {
   isLegendary: boolean;
   isMythical: boolean;
 }
+
+export interface SlimPokemon {
+  id: number;
+  types: PokemonType[];
+  stats: PokemonStat[];
+}

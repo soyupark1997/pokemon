@@ -1,30 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { PokemonCardData, PokemonSpecies } from "@/types/pokemon";
+import type { PokemonCardData, PokemonSpecies, SlimPokemon } from "@/types/pokemon";
 import { typeChart } from "@/utils/typeChart";
 import { typeColor } from "@/utils/typeColor";
-
-const typeNameKo: Record<string, string> = {
-  fire: "불",
-  water: "물",
-  grass: "풀",
-  electric: "전기",
-  psychic: "에스퍼",
-  dragon: "드래곤",
-  normal: "노말",
-  fighting: "격투",
-  flying: "비행",
-  poison: "독",
-  ground: "땅",
-  rock: "바위",
-  bug: "벌레",
-  ghost: "고스트",
-  ice: "얼음",
-  dark: "악",
-  steel: "강철",
-  fairy: "페어리",
-};
+import { typeNameKo } from "@/constants/typeNameKo";
 
 function getWeaknesses(
   types: string[],
@@ -89,6 +69,14 @@ export default function PokemonModal({
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [battleLoading, setBattleLoading] = useState(true);
   const [flavorText, setFlavorText] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  function handleShare() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   useEffect(() => {
     setBattleLoading(true);
@@ -99,12 +87,13 @@ export default function PokemonModal({
       { type: "module" },
     );
 
-    const allPokemonOnly = allPokemonsRef.current.filter(Boolean).map((p) => p.pokemon);
+    const toSlim = ({ id, types, stats }: SlimPokemon): SlimPokemon => ({ id, types, stats });
+    const allSlim = allPokemonsRef.current.filter(Boolean).map((p) => toSlim(p.pokemon));
     const timer = setTimeout(() => setBattleLoading(false), 8000);
 
     workerRef.current.postMessage({
-      selected: selected.pokemon,
-      allPokemons: allPokemonOnly,
+      selected: toSlim(selected.pokemon),
+      allPokemons: allSlim,
     });
 
     workerRef.current.onmessage = (e) => {
@@ -153,12 +142,20 @@ export default function PokemonModal({
       }}
     >
       <div className="bg-amber-50 rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
-        >
-          ✕
-        </button>
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <button
+            onClick={handleShare}
+            className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-500 hover:bg-amber-200 transition-colors font-bold"
+          >
+            {copied ? "복사됨!" : "🔗 공유"}
+          </button>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl"
+          >
+            ✕
+          </button>
+        </div>
 
         {/* 헤더 */}
         <div className="text-center mb-4">
@@ -188,9 +185,9 @@ export default function PokemonModal({
             {selected.pokemon.types.map((t) => (
               <span
                 key={t.type.name}
-                className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-600"
+                className={`text-xs px-2 py-1 rounded-full ${typeColor[t.type.name] ?? "bg-amber-100 text-amber-600"}`}
               >
-                {t.type.name}
+                {typeNameKo[t.type.name] ?? t.type.name}
               </span>
             ))}
           </div>

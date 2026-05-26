@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { PokemonCardData } from "@/types/pokemon";
 import { LEGEND_FILTERS, TYPE_FILTERS } from "@/constants/filters";
 import { usePokemonList } from "@/hooks/usePokemonList";
@@ -19,31 +19,101 @@ interface Props {
 export default function PokemonGrid({ pokemonNames }: Props) {
   const { allPokemons, isLoading } = usePokemonList(pokemonNames);
   const {
-    legendFilter, setLegendFilter,
-    typeFilter, setTypeFilter,
-    searchQuery, setSearchQuery,
-    currentPage, totalPages,
-    pageItems, handlePageChange,
+    legendFilter,
+    setLegendFilter,
+    typeFilter,
+    setTypeFilter,
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    totalPages,
+    pageItems,
+    handlePageChange,
   } = useFilteredPokemons(allPokemons);
+
+  const [selectedPokemon, setSelectedPokemon] =
+    useState<PokemonCardData | null>(null);
+  const [battlePair, setBattlePair] = useState<
+    [PokemonCardData, PokemonCardData] | null
+  >(null);
+  const initialHandled = useRef(false);
+
   const {
-    battleMode, battleSelected, battlePair,
-    battleBannerText, toggleBattleMode, selectForBattle, closeBattle,
-  } = useBattleMode();
+    battleMode,
+    battleSelected,
+    battleBannerText,
+    toggleBattleMode,
+    selectForBattle,
+  } = useBattleMode((p1, p2) => {
+    setBattlePair([p1, p2]);
+    window.history.pushState(
+      null,
+      "",
+      `/?battle=${p1.pokemon.id},${p2.pokemon.id}`,
+    );
+  });
 
-  const [selectedPokemon, setSelectedPokemon] = useState<PokemonCardData | null>(null);
+  const loadedPokemons = useMemo(
+    () => allPokemons.filter((p): p is PokemonCardData => p !== null),
+    [allPokemons],
+  );
 
-  const hasActiveFilters = legendFilter !== "all" || typeFilter !== "all" || searchQuery !== "";
+  useEffect(() => {
+    if (initialHandled.current || loadedPokemons.length === 0) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const pokemonId = params.get("pokemon");
+    const battleIds = params.get("battle");
+
+    if (pokemonId) {
+      const found = loadedPokemons.find(
+        (p) => p.pokemon.id === Number(pokemonId),
+      );
+      if (found) {
+        setSelectedPokemon(found);
+        initialHandled.current = true;
+      }
+    } else if (battleIds) {
+      const [id1, id2] = battleIds.split(",").map(Number);
+      const p1 = loadedPokemons.find((p) => p.pokemon.id === id1);
+      const p2 = loadedPokemons.find((p) => p.pokemon.id === id2);
+      if (p1 && p2) {
+        setBattlePair([p1, p2]);
+        initialHandled.current = true;
+      }
+    } else {
+      initialHandled.current = true;
+    }
+  }, [loadedPokemons]);
+
+  const hasActiveFilters =
+    legendFilter !== "all" || typeFilter !== "all" || searchQuery !== "";
   const skeletonCount =
     isLoading && currentPage === 1 && !hasActiveFilters
       ? Math.max(0, Math.min(pokemonNames.length, 20) - pageItems.length)
       : 0;
 
-  function handleCardClick(cardData: PokemonCardData) {
-    if (battleMode) selectForBattle(cardData);
-    else setSelectedPokemon(cardData);
+  const handleCardClick = useCallback(
+    (cardData: PokemonCardData) => {
+      if (battleMode) {
+        selectForBattle(cardData);
+      } else {
+        setSelectedPokemon(cardData);
+        window.history.pushState(null, "", `/?pokemon=${cardData.pokemon.id}`);
+      }
+    },
+    [battleMode, selectForBattle],
+  );
+
+  function handlePokemonClose() {
+    setSelectedPokemon(null);
+    window.history.pushState(null, "", "/");
   }
 
-  const loadedPokemons = allPokemons.filter((p): p is PokemonCardData => p !== null);
+  function handleBattleClose() {
+    setBattlePair(null);
+    window.history.pushState(null, "", "/");
+  }
 
   return (
     <>
@@ -69,7 +139,9 @@ export default function PokemonGrid({ pokemonNames }: Props) {
 
         {/* 검색 */}
         <div className="bg-white/60 rounded-2xl px-4 py-4 mb-4">
-          <p className="text-sm text-amber-500 font-bold text-center mb-3 tracking-wide">검색</p>
+          <p className="text-sm text-amber-500 font-bold text-center mb-3 tracking-wide">
+            검색
+          </p>
           <div className="flex justify-center">
             <input
               type="text"
@@ -83,7 +155,9 @@ export default function PokemonGrid({ pokemonNames }: Props) {
 
         {/* 희귀도 */}
         <div className="bg-white/60 rounded-2xl px-4 py-4 mb-4">
-          <p className="text-sm text-amber-500 font-bold text-center mb-3 tracking-wide">희귀도</p>
+          <p className="text-sm text-amber-500 font-bold text-center mb-3 tracking-wide">
+            희귀도
+          </p>
           <div className="flex gap-x-2 gap-y-2 justify-center flex-wrap">
             {LEGEND_FILTERS.map(({ value, label, active, base }) => (
               <button
@@ -99,7 +173,9 @@ export default function PokemonGrid({ pokemonNames }: Props) {
 
         {/* 타입 */}
         <div className="bg-white/60 rounded-2xl px-4 py-4">
-          <p className="text-sm text-amber-500 font-bold text-center mb-3 tracking-wide">타입</p>
+          <p className="text-sm text-amber-500 font-bold text-center mb-3 tracking-wide">
+            타입
+          </p>
           <div className="flex gap-x-2 gap-y-3 justify-center flex-wrap">
             {TYPE_FILTERS.map(({ value, label, active, base }) => (
               <button
@@ -120,8 +196,10 @@ export default function PokemonGrid({ pokemonNames }: Props) {
           <PokemonCard
             key={cardData.pokemon.id}
             data={cardData}
-            onClick={() => handleCardClick(cardData)}
-            isSelected={battleSelected.some((p) => p.pokemon.id === cardData.pokemon.id)}
+            onClick={handleCardClick}
+            isSelected={battleSelected.some(
+              (p) => p.pokemon.id === cardData.pokemon.id,
+            )}
           />
         ))}
         {Array.from({ length: skeletonCount }).map((_, i) => (
@@ -143,7 +221,7 @@ export default function PokemonGrid({ pokemonNames }: Props) {
         <PokemonModal
           selected={selectedPokemon}
           allPokemons={loadedPokemons}
-          onClose={() => setSelectedPokemon(null)}
+          onClose={handlePokemonClose}
         />
       )}
 
@@ -152,7 +230,7 @@ export default function PokemonGrid({ pokemonNames }: Props) {
         <BattleModal
           p1={battlePair[0]}
           p2={battlePair[1]}
-          onClose={closeBattle}
+          onClose={handleBattleClose}
         />
       )}
     </>

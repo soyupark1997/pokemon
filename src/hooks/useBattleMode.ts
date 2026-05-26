@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { PokemonCardData } from "@/types/pokemon";
 
-export function useBattleMode() {
-  const [battleMode, setBattleMode]         = useState(false);
+export function useBattleMode(
+  onPairReady: (p1: PokemonCardData, p2: PokemonCardData) => void,
+) {
+  const [battleMode, setBattleMode] = useState(false);
   const [battleSelected, setBattleSelected] = useState<PokemonCardData[]>([]);
-  const [battlePair, setBattlePair]         = useState<[PokemonCardData, PokemonCardData] | null>(null);
 
   function toggleBattleMode() {
     setBattleMode((v) => !v);
@@ -19,16 +20,12 @@ export function useBattleMode() {
       const next = [...prev, cardData];
       if (next.length === 2) {
         setTimeout(() => {
-          setBattlePair([next[0], next[1]]);
+          onPairReady(next[0], next[1]);
           setBattleSelected([]);
         }, 300);
       }
       return next;
     });
-  }
-
-  function closeBattle() {
-    setBattlePair(null);
   }
 
   const battleBannerText =
@@ -38,13 +35,5 @@ export function useBattleMode() {
         ? `${battleSelected[0].koName} 선택됨 — 상대 포켓몬을 선택하세요`
         : "배틀 준비 중...";
 
-  return {
-    battleMode,
-    battleSelected,
-    battlePair,
-    battleBannerText,
-    toggleBattleMode,
-    selectForBattle,
-    closeBattle,
-  };
+  return { battleMode, battleSelected, battleBannerText, toggleBattleMode, selectForBattle };
 }
