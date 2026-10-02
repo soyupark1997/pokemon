@@ -5,7 +5,7 @@
 
 ## 데모
 
-> [pokemon-three-kappa-54.vercel.app](https://pokemon-three-kappa-54.vercel.app)
+> [https://pokemon-battle.com/](https://pokemon-battle.com/)
 
 ## 기술 스택
 
